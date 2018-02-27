@@ -21,14 +21,16 @@ implementing strategies:
 import time
 import operator
 import devp2p.kademlia
-from test_kademlia_protocol import test_many, get_wired_protocol
+from devp2p.tests.test_kademlia_protocol import test_many, get_wired_protocol
 from collections import OrderedDict
 import random
 import statistics
+import networkx as nx
+from functools import total_ordering
 
 random.seed(42)
 
-
+@total_ordering
 class CNodeBase(object):
 
     """
@@ -91,7 +93,7 @@ class CNodeBase(object):
         "call find node to fill buckets with addresses close to the target"
         all = [n.proto for n in self.network.values()]
         for t in self.targets:
-
+            #print('find_targets:{}'.format(t))
             self.proto.find_node(t['address'])
             self.network.process()
 
@@ -112,8 +114,9 @@ class CNodeBase(object):
         for t in (t for t in self.targets if not t['connected']):
             if len(self.connections) >= self.max_peers:
                 break
-            if candidates:
-                assert not random_within_distance
+            #if len(candidates) != 0:
+            #    print(candidates)
+            #    assert not random_within_distance
             elif random_within_distance:
                 candidates = self.proto.routing.neighbours_within_distance(
                     t['address'], t['tolerance'])
@@ -147,6 +150,8 @@ class CNodeBase(object):
             self.targets.append(dict(address=0, tolerance=0, connected=None))
             # NOT IMPLEMENTED HERE
 
+    def __lt__(self, other):
+        return self.id < other.id
 
 class CNodeRandom(CNodeBase):
 
@@ -210,7 +215,7 @@ class CNodeFelixNoLimits(CNodeBase):
             distance = int((i + 0.5) * slot_width)
             tolerance = slot_width / 2
             address = (self.id + distance) % (self.k_max_node_id + 1)
-            assert isinstance(address, long), address
+            assert isinstance(address, int), address
             self.targets.append(dict(address=address, tolerance=tolerance, connected=None))
 
 
@@ -289,9 +294,11 @@ class CNodeKademlia(CNodeBase):
         """
         distance = self.k_max_node_id
         for i in range(self.min_peers):
-            distance /= 2
+            distance //= 2
             address = (self.id + distance) % (self.k_max_node_id + 1)
-            tolerance = distance / 2
+            tolerance = distance // 2
+            #print('address {}'.format(address))
+            assert isinstance(address, int), address
             self.targets.append(dict(address=address, tolerance=tolerance, connected=None))
 
 
@@ -330,7 +337,7 @@ def analyze(network):
     # calc shortests paths
     # lower is better
     if nx.is_connected(G):
-        print 'calculating avg_shortest_path'
+        print('calculating avg_shortest_path')
         avg_shortest_paths = []
         for node in G:
             path_length = nx.single_source_shortest_path_length(G, node)
@@ -342,7 +349,7 @@ def analyze(network):
     try:
         # Closeness centrality at a node is 1/average distance to all other nodes.
         # higher is better
-        print 'calculating closeness centrality'
+        print('calculating closeness centrality')
         vs = nx.closeness_centrality(G).values()
         metrics['min_closeness_centrality'] = min(vs)
         metrics['avg_closeness_centrality'] = statistics.mean(vs)
@@ -355,17 +362,17 @@ def analyze(network):
         # I recommend calculating (or estimating) the centrality of each node and making sure that
         # there are no nodes with much higher centrality than the average.
         # lower is better
-        print 'calculating load centrality'
+        print('calculating load centrality')
         vs = nx.load_centrality(G).values()
         metrics['max_load_centrality'] = max(vs)
         metrics['avg_load_centrality'] = statistics.mean(vs)
         metrics['rsd_load_centrality'] = statistics.stdev(vs) / metrics['avg_load_centrality']
 
-        print 'calculating node_connectivity'
+        print('calculating node_connectivity')
         # higher is better
         metrics['node_connectivity'] = nx.node_connectivity(G)
 
-        print 'calculating diameter'
+        print('calculating diameter')
         # lower is better
         metrics['diameter '] = nx.diameter(G)
 
@@ -390,13 +397,13 @@ def draw(G, metrics=dict()):
     circo - circular layout, after Six and Tollis 99, Kauffman and Wiese 02. This is suitable for certain diagrams of multiple cyclic structures, such as certain telecommunications networks.
 
     """
-    print 'layouting'
+    print('layouting')
 
     text = ''
     for k, v in metrics.items():
         text += '%s: %.4f\n' % (k.ljust(max(len(x) for x in metrics.keys())), v)
 
-    print text
+    print(text)
     #pos = nx.graphviz_layout(G, prog='dot', args='')
     pos = nx.spring_layout(G)
     plt.figure(figsize=(8, 8))
@@ -405,7 +412,7 @@ def draw(G, metrics=dict()):
     plt.axis('equal')
     outfile = 'network_graph.png'
     plt.savefig(outfile)
-    print 'saved visualization to', outfile
+    print('saved visualization to {}'.format(outfile))
     plt.ion()
     plt.show()
     while True:
@@ -413,14 +420,14 @@ def draw(G, metrics=dict()):
 
 
 def simulate(node_class, set_num_nodes=20, set_min_peers=7, set_max_peers=14):
-    print 'running simulation', node_class.__name__, \
-        dict(num_nodes=set_num_nodes, min_peers=set_min_peers, max_peers=set_max_peers)
+    print('running simulation {} {}'.format(node_class.__name__, \
+        dict(num_nodes=set_num_nodes, min_peers=set_min_peers, max_peers=set_max_peers)))
 
-    print 'bootstrapping discovery protocols'
+    print('bootstrapping discovery protocols')
     kademlia_protocols = node_class.prepare_dht(set_num_nodes)
 
     # create ConnectableNode instances
-    print 'executing connection strategy'
+    print('executing connection strategy')
     network = OrderedDict()  # node.id -> Node
     # .process executes all messages on the network
     network.process = lambda: kademlia_protocols[0].wire.process(kademlia_protocols)
@@ -430,17 +437,17 @@ def simulate(node_class, set_num_nodes=20, set_min_peers=7, set_max_peers=14):
         cn = node_class(p, network, min_peers=set_min_peers, max_peers=set_max_peers)
         network[cn.id] = cn
 
-    print 'setup targets'
+    print('setup targets')
     # setup targets
     for cn in network.values():
         cn.setup_targets()
 
-    print 'lookup targets'
+    print('lookup targets')
     # lookup targets
     for cn in network.values():
         cn.find_targets()
 
-    print 'connect peers'
+    print('connect peers')
     # connect peers (one client per round may connect)
     while True:
         n_connects = 0
@@ -455,10 +462,10 @@ def simulate(node_class, set_num_nodes=20, set_min_peers=7, set_max_peers=14):
 
 def print_results(results=[]):
     labels = results[0].keys()
-    print '\t'.join(labels)
+    print('\t'.join(labels))
     f = lambda x: str(x) if isinstance(x, (int, str)) else ('%.4f' % x)  # .replace('.', ',')
     for r in results:
-        print '\t'.join(f(r.get(k, 'n/a')) for k in labels)
+        print('\t'.join(f(r.get(k, 'n/a')) for k in labels))
 
 
 def main(num_nodes):
@@ -468,12 +475,12 @@ def main(num_nodes):
                CNodeKademliaRandom,
                CNodeRandomSelfLookup,
                CNodeFelixNoLimits]
-    klasses = [CNodeRandomFast]
+    #klasses = [CNodeRandomFast]
 
     # min_peer settings to test
     min_peer_options = (6,)
 
-    print 'running %d simulations' % (len(min_peer_options) * len(klasses))
+    print('running {} simulations'.format((len(min_peer_options) * len(klasses))))
 
     results = []
     for min_peers in min_peer_options:
@@ -485,7 +492,7 @@ def main(num_nodes):
             metrics = simulate(**p)
             p.update(metrics)
             p['node_class'] = p['node_class'].__name__
-            print p
+            print(p)
             results.append(p)
 
     print_results(results)
@@ -495,7 +502,7 @@ if __name__ == '__main__':
     # pyethereum.slogging.configure(config_string=':debug')
     import sys
     if not len(sys.argv) == 2:
-        print 'usage:%s <num_nodes>' % sys.argv[0]
+        print('usage:{} <num_nodes>'.format(sys.argv[0]))
         sys.exit(1)
     num_nodes = int(sys.argv[1])
     main(num_nodes)

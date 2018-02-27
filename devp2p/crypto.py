@@ -24,12 +24,13 @@ if 'pyelliptic' not in dir() or not CIPHERNAMES.issubset(set(pyelliptic.Cipher.g
     sys.exit(1)
 
 import bitcoin
-from Crypto.Hash import keccak
+import sha3 as _sha3
 from rlp.utils import str_to_bytes, safe_ord, ascii_chr
-sha3_256 = lambda x: keccak.new(digest_bits=256, data=str_to_bytes(x))
 from hashlib import sha256
 import struct
 from coincurve import PrivateKey, PublicKey
+
+sha3_256 = lambda x: _sha3.keccak_256(x).digest()
 
 hmac_sha256 = pyelliptic.hmac_sha256
 
@@ -141,7 +142,8 @@ class ECCx(pyelliptic.ECC):
         assert len(key) == 32
         key_enc, key_mac = key[:16], key[16:]
 
-        key_mac = sha256(key_mac).digest()  # !!!
+        hasher = sha256()
+        key_mac = hasher.update(key_mac).digest()  # !!!
         assert len(key_mac) == 32
         # 3) generate R = rG [same op as generating a public key]
         ephem_pubkey = ephem.raw_pubkey
@@ -191,7 +193,8 @@ class ECCx(pyelliptic.ECC):
         assert len(key) == 32
         key_enc, key_mac = key[:16], key[16:]
 
-        key_mac = sha256(key_mac).digest()
+        hasher = sha256()
+        key_mac = hasher.update(key_mac).digest()
         assert len(key_mac) == 32
 
         tag = data[-32:]
@@ -228,7 +231,7 @@ def lzpad32(x):
 
 
 def _encode_sig(v, r, s):
-    assert isinstance(v, (int, long))
+    assert isinstance(v, (int, int))
     assert v in (27, 28)
     vb, rb, sb = chr(v - 27), bitcoin.encode(r, 256), bitcoin.encode(s, 256)
     return lzpad32(rb) + lzpad32(sb) + vb
@@ -259,7 +262,7 @@ recover = ecdsa_recover
 
 
 def sha3(seed):
-    return sha3_256(seed).digest()
+    return sha3_256(seed)
 
 
 def mk_privkey(seed):
