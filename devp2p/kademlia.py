@@ -20,11 +20,14 @@ import time
 from functools import total_ordering
 
 from devp2p import slogging
+import logging
 from .crypto import sha3
 from .utils import big_endian_to_int
 from rlp.utils import encode_hex, is_integer, str_to_bytes
 
 log = slogging.get_logger('p2p.discovery.kademlia')
+logging.basicConfig(format='%(asctime)s,%(msecs)d %(levelname)-8s [%(filename)s:%(lineno)d] %(message)s',
+    datefmt='%d-%m-%Y:%H:%M:%S', level=logging.DEBUG)
 
 
 k_b = 8  # 8 bits per hop
@@ -238,16 +241,16 @@ class RoutingTable(object):
 
     def add_node(self, node):
         assert node != self.this_node
-        # log.debug('add_node', node=node)
+        log.debug('add_node', node=node)
         bucket = self.bucket_by_node(node)
         eviction_candidate = bucket.add_node(node)
         if eviction_candidate:  # bucket is full
-            # log.debug('bucket is full', node=node, eviction_candidate=eviction_candidate)
+            log.debug('bucket is full', node=node, eviction_candidate=eviction_candidate)
             # split if the bucket has the local node in its range
             # or if the depth is not congruent to 0 mod k_b
             depth = bucket.depth
             if bucket.in_range(self.this_node) or (depth % k_b != 0 and depth != k_id_size):
-                # log.debug('splitting bucket')
+                log.debug('splitting bucket')
                 self.split_bucket(bucket)
                 return self.add_node(node)  # retry
             # nothing added, ping eviction_candidate
@@ -364,6 +367,7 @@ class KademliaProtocol(object):
 
     def bootstrap(self, nodes):
         assert isinstance(nodes, list)
+        log.info('bootstrap node:{}'.format(self.this_node))
         for node in nodes:
             if node == self.this_node:
                 continue

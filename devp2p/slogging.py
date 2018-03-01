@@ -1,7 +1,6 @@
 import logging
 import warnings
 
-
 try:
     from ethereum.slogging import get_logger, configure, configure_logging, getLogger
 except ImportError:

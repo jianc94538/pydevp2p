@@ -366,7 +366,7 @@ def analyze(network):
         vs = nx.load_centrality(G).values()
         metrics['max_load_centrality'] = max(vs)
         metrics['avg_load_centrality'] = statistics.mean(vs)
-        metrics['rsd_load_centrality'] = statistics.stdev(vs) / metrics['avg_load_centrality']
+        #metrics['rsd_load_centrality'] = statistics.stdev(vs) / metrics['avg_load_centrality']
 
         print('calculating node_connectivity')
         # higher is better
@@ -475,7 +475,7 @@ def main(num_nodes):
                CNodeKademliaRandom,
                CNodeRandomSelfLookup,
                CNodeFelixNoLimits]
-    #klasses = [CNodeRandomFast]
+    klasses = [CNodeKademliaRandom]
 
     # min_peer settings to test
     min_peer_options = (6,)

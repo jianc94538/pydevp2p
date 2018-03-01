@@ -11,6 +11,7 @@ import rlp
 from rlp.utils import decode_hex, is_integer, str_to_bytes, bytes_to_str, safe_ord
 from gevent.server import DatagramServer
 
+import logging
 from devp2p import slogging
 from devp2p import crypto
 from devp2p import kademlia
@@ -20,7 +21,8 @@ from .upnp import add_portmap, remove_portmap
 
 
 log = slogging.get_logger('p2p.discovery')
-
+logging.basicConfig(format='%(asctime)s,%(msecs)d %(levelname)-8s [%(filename)s:%(lineno)d] %(message)s',
+    datefmt='%d-%m-%Y:%H:%M:%S', level=logging.DEBUG)
 
 class DefectiveMessage(Exception):
     pass

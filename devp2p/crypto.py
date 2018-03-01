@@ -1,27 +1,8 @@
 #!/usr/bin/python
-CIPHERNAMES = set(('aes-128-ctr',))
 import warnings
 import os
 import sys
-if sys.platform not in ('darwin',):
-    import pyelliptic
-else:
-    # FIX PATH ON OS X ()
-    # https://github.com/yann2192/pyelliptic/issues/11
-    _openssl_lib_paths = ['/usr/local/Cellar/openssl/']
-    for p in _openssl_lib_paths:
-        if os.path.exists(p):
-            p = os.path.join(p, os.listdir(p)[-1], 'lib')
-            os.environ['DYLD_LIBRARY_PATH'] = p
-            import pyelliptic
-            if CIPHERNAMES.issubset(set(pyelliptic.Cipher.get_all_cipher())):
-                break
-if 'pyelliptic' not in dir() or not CIPHERNAMES.issubset(set(pyelliptic.Cipher.get_all_cipher())):
-    print('required ciphers %r not available in openssl library' % CIPHERNAMES)
-    if sys.platform == 'darwin':
-        print('use homebrew or macports to install newer openssl')
-        print('> brew install openssl / > sudo port install openssl')
-    sys.exit(1)
+import pyelliptic
 
 import bitcoin
 import sha3 as _sha3
