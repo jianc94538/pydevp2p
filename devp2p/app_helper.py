@@ -8,6 +8,8 @@ from devp2p.utils import host_port_pubkey_to_uri, update_config_with_defaults
 from rlp.utils import encode_hex
 import gevent
 import copy
+from .slogging import get_logger
+log = get_logger("app_helper")
 
 
 def mk_privkey(seed):
@@ -34,7 +36,7 @@ def create_app(node_num, config, services, app_class):
     config['node_num'] = node_num
 
     # create this node priv_key
-    config['node']['privkey_hex'] = encode_hex(mk_privkey('%d:udp:%d' % (seed, node_num)))
+    config['node']['privkey_hex'] = encode_hex(mk_privkey('{}:udp:{}'.format(seed, node_num).encode('utf-8')))
     # set ports based on node
     config['discovery']['listen_port'] = base_port + node_num
     config['p2p']['listen_port'] = base_port + node_num
@@ -78,7 +80,7 @@ def run(app_class, service_class, num_nodes=3, seed=0, min_peers=2, max_peers=2,
         base_port = 29870
 
     # get bootstrap node (node0) enode
-    bootstrap_node_privkey = mk_privkey('%d:udp:%d' % (seed, 0))
+    bootstrap_node_privkey = mk_privkey('{}:udp:{}'.format(seed, 0).encode('utf-8'))
     bootstrap_node_pubkey = privtopub_raw(bootstrap_node_privkey)
     enode = host_port_pubkey_to_uri('0.0.0.0', base_port, bootstrap_node_pubkey)
 
@@ -95,7 +97,7 @@ def run(app_class, service_class, num_nodes=3, seed=0, min_peers=2, max_peers=2,
     base_config['num_nodes'] = num_nodes
     base_config['min_peers'] = min_peers
     base_config['max_peers'] = max_peers
-
+    log.info('run:', base_config=base_config)
     # prepare apps
     apps = []
     for node_num in range(num_nodes):

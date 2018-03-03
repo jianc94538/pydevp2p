@@ -101,8 +101,8 @@ def test_packing():
     """
 
     # get two DiscoveryProtocol instances
-    alice = NodeDiscoveryMock(host='127.0.0.1', port=1, seed='alice').protocol
-    bob = NodeDiscoveryMock(host='127.0.0.1', port=1, seed='bob').protocol
+    alice = NodeDiscoveryMock(host='127.0.0.1', port=1, seed=b'alice').protocol
+    bob = NodeDiscoveryMock(host='127.0.0.1', port=1, seed=b'bob').protocol
 
     cmd_id = 3  # findnode
     payload = [b'a', [b'b', b'c']]
@@ -116,8 +116,8 @@ def test_packing():
 
 
 def test_ping_pong():
-    alice = NodeDiscoveryMock(host='127.0.0.1', port=1, seed='alice')
-    bob = NodeDiscoveryMock(host='127.0.0.2', port=2, seed='bob')
+    alice = NodeDiscoveryMock(host='127.0.0.1', port=1, seed=b'alice')
+    bob = NodeDiscoveryMock(host='127.0.0.2', port=2, seed=b'bob')
 
     bob_node = alice.protocol.get_node(bob.protocol.pubkey, bob.address)
     alice.protocol.kademlia.ping(bob_node)
@@ -192,7 +192,7 @@ eip8_packets = dict(
 
 
 def test_eip8_packets():
-    disc = NodeDiscoveryMock(host='127.0.0.1', port=1, seed='bob').protocol
+    disc = NodeDiscoveryMock(host='127.0.0.1', port=1, seed=b'bob').protocol
     fromaddr = discovery.Address("127.0.0.1", 9999)
     for packet in eip8_packets.values():
         disc.unpack(packet)
@@ -217,10 +217,10 @@ def get_app(port, seed):
 
 
 def test_ping_pong_udp():
-    alice_app = get_app(30000, 'alice')
+    alice_app = get_app(30000, b'alice')
     alice_app.start()
     alice_discovery = alice_app.services.discovery
-    bob_app = get_app(30001, 'bob')
+    bob_app = get_app(30001, b'bob')
     bob_app.start()
     bob_discovery = bob_app.services.discovery
 
@@ -260,7 +260,7 @@ def test_bootstrap_udp(kademlia_timeout):
     num_apps = 6
     apps = []
     for i in range(num_apps):
-        app = get_app(30002 + i, 'app%d' % i)
+        app = get_app(30002 + i, b'app%d' % i)
         app.start()
         apps.append(app)
 
@@ -304,7 +304,7 @@ def main():
     # stop on every unhandled exception!
     gevent.get_hub().SYSTEM_ERROR = BaseException  # (KeyboardInterrupt, SystemExit, SystemError)
 
-    app = get_app(30304, 'theapp')
+    app = get_app(30304, b'theapp')
     # app.config['p2p']['listen_host'] = '127.0.0.1'
     app.config['p2p']['listen_host'] = '0.0.0.0'
 

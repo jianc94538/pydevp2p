@@ -30,7 +30,7 @@ class WireMock(kademlia.WireInterface):
     def send_ping(self, node):
         echo = hex(random.randint(0, 2**256))[-32:]
         self.messages.append((node, 'ping', self.sender, echo))
-        log.debug('send_ping', msg=echo)
+        log.debug('send_ping', mesg=echo)
         return echo
 
     def send_pong(self, node, echo):
@@ -39,10 +39,10 @@ class WireMock(kademlia.WireInterface):
 
     def send_find_node(self,  node, nodeid):
         self.messages.append((node, 'find_node', self.sender, nodeid))
-        log.debug('find_node')
+        log.debug('find_node {}'.format(node))
 
     def send_neighbours(self, node, neighbours):
-        log.debug('send_neighbours')
+        log.debug('send_neighbours {}, neighbors {}'.format(node, neighbours))
         self.messages.append((node, 'neighbours', self.sender, neighbours))
 
     def poll(self, node):
@@ -63,6 +63,7 @@ class WireMock(kademlia.WireInterface):
             assert isinstance(msg[2], kademlia.Node)
             target = proto_by_node[msg[0]]
             cmd = 'recv_' + msg[1]
+            log.debug('cmd:{}'.format(cmd))
             getattr(target, cmd)(*msg[2:])
             i += 1
             if steps and i == steps:

@@ -22,10 +22,10 @@ class BaseProtocol(gevent.Greenlet):
     It implements a collection of commands.
 
     For each command X the following methods are created at initialization:
-    -    packet = protocol.create_X(*args, **kargs)
+    -   packet = protocol.create_X(*args, **kargs)
     -   protocol.send_X(*args, **kargs) is a shortcut for:
             protocol.send_packet(protocol.create_X(*args, **kargs))
-    - protocol._receive_X(data)
+    -   protocol._receive_X(data)
 
 
     on protocol.receive_packet, the packet is deserialized according to the command.structure

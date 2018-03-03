@@ -5,7 +5,7 @@ import random
 import pytest
 
 
-def get_ecc(secret=''):
+def get_ecc(secret=b''):
     return crypto.ECCx(raw_privkey=crypto.mk_privkey(secret))
 
 
@@ -21,7 +21,7 @@ def test_valid_ecc():
 
 
 def test_asymetric():
-    bob = get_ecc('secret2')
+    bob = get_ecc(b'secret2')
 
     # enc / dec
     plaintext = b"Hello Bob"
@@ -30,10 +30,10 @@ def test_asymetric():
 
 
 def test_signature():
-    bob = get_ecc('secret2')
+    bob = get_ecc(b'secret2')
 
     # sign
-    message = crypto.sha3("Hello Alice")
+    message = crypto.sha3(b"Hello Alice")
     signature = bob.sign(message)
 
     # verify signature
@@ -41,14 +41,14 @@ def test_signature():
     assert crypto.ECCx(raw_pubkey=bob.raw_pubkey).verify(signature, message) is True
 
     # wrong signature
-    message = crypto.sha3("Hello Alicf")
+    message = crypto.sha3(b"Hello Alicf")
     assert crypto.ECCx(raw_pubkey=bob.raw_pubkey).verify(signature, message) is False
     assert crypto.verify(bob.raw_pubkey, signature, message) is False
 
 
 def test_recover():
-    alice = get_ecc('secret1')
-    message = crypto.sha3('hello bob')
+    alice = get_ecc(b'secret1')
+    message = crypto.sha3(b'hello bob')
     signature = alice.sign(message)
     assert len(signature) == 65
     assert crypto.verify(alice.raw_pubkey, signature, message) is True
@@ -90,16 +90,16 @@ def test_en_decrypt_shared_mac_data_fail():
 
 
 def test_privtopub():
-    priv = crypto.mk_privkey('test')
+    priv = crypto.mk_privkey(b'test')
     pub = crypto.privtopub(priv)
     pub2 = crypto.ECCx(raw_privkey=priv).raw_pubkey
     assert pub == pub2
 
 
 def recover_1kb(times=1000):
-    alice = get_ecc('secret1')
+    alice = get_ecc(b'secret1')
     message = ''.join(chr(random.randrange(0, 256)) for i in range(1024))
-    message = crypto.sha3(message)
+    message = crypto.sha3(message.encode('utf-8'))
     signature = alice.sign(message)
     for i in range(times):
         recovered_pubkey = crypto.ecdsa_recover(message, signature)

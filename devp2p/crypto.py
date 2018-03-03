@@ -123,8 +123,7 @@ class ECCx(pyelliptic.ECC):
         assert len(key) == 32
         key_enc, key_mac = key[:16], key[16:]
 
-        hasher = sha256()
-        key_mac = hasher.update(key_mac).digest()  # !!!
+        key_mac = sha256(key_mac).digest()
         assert len(key_mac) == 32
         # 3) generate R = rG [same op as generating a public key]
         ephem_pubkey = ephem.raw_pubkey
@@ -174,8 +173,7 @@ class ECCx(pyelliptic.ECC):
         assert len(key) == 32
         key_enc, key_mac = key[:16], key[16:]
 
-        hasher = sha256()
-        key_mac = hasher.update(key_mac).digest()
+        key_mac = sha256(key_mac).digest()
         assert len(key_mac) == 32
 
         tag = data[-32:]

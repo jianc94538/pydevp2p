@@ -93,9 +93,9 @@ class CNodeBase(object):
         "call find node to fill buckets with addresses close to the target"
         all = [n.proto for n in self.network.values()]
         for t in self.targets:
-            #print('find_targets:{}'.format(t))
             self.proto.find_node(t['address'])
             self.network.process()
+            print('find_targets:{}'.format(t))
 
     def connect_peers(self, max_connects=0, random_within_distance=False, candidates=[]):
         """
@@ -110,6 +110,7 @@ class CNodeBase(object):
         """
         assert self.targets
         num_connected = 0
+        print('not connected targets:{}'.format(t for t in self.targets if not t['connected']))
         # connect closest node to target id
         for t in (t for t in self.targets if not t['connected']):
             if len(self.connections) >= self.max_peers:
@@ -123,6 +124,7 @@ class CNodeBase(object):
                 random.shuffle(candidates)
             else:
                 candidates = self.proto.routing.neighbours(t['address'])
+            print('for node {} candidates {}'.format(t, candidates))
             for knode in candidates:
                 assert isinstance(knode, devp2p.kademlia.Node)
                 assert len(self.connections) < self.max_peers
@@ -441,11 +443,13 @@ def simulate(node_class, set_num_nodes=20, set_min_peers=7, set_max_peers=14):
     # setup targets
     for cn in network.values():
         cn.setup_targets()
+        print('setup node:{}'.format(cn))
 
     print('lookup targets')
     # lookup targets
     for cn in network.values():
         cn.find_targets()
+        print('find_targets:{}'.format(cn))
 
     print('connect peers')
     # connect peers (one client per round may connect)

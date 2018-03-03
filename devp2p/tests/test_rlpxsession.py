@@ -256,15 +256,15 @@ def test_encryption():
         msg_frame = sha3(str_to_bytes(str(i)) + b'f') * i + b'notpadded'
         msg_frame_padded = rzpad16(msg_frame)
         frame_size = len(msg_frame)
-        msg_header = struct.pack('>I', frame_size)[1:] + sha3(str(i))[:16 - 3]
+        msg_header = struct.pack('>I', frame_size)[1:] + sha3(str(i).encode('utf-8'))[:16 - 3]
         msg_ct = initiator.encrypt(msg_header, msg_frame_padded)
         r = responder.decrypt(msg_ct)
         assert r['header'] == msg_header
         assert r['frame'] == msg_frame
 
     for i in range(5):
-        msg_frame = sha3(str(i) + 'f')
-        msg_header = struct.pack('>I', len(msg_frame))[1:] + sha3(str(i))[:16 - 3]
+        msg_frame = sha3((str(i) + 'f').encode('utf-8'))
+        msg_header = struct.pack('>I', len(msg_frame))[1:] + sha3(str(i).encode('utf-8'))[:16 - 3]
         msg_ct = responder.encrypt(msg_header, msg_frame)
         r = initiator.decrypt(msg_ct)
         assert r['header'] == msg_header
@@ -273,10 +273,10 @@ def test_encryption():
 
 def test_body_length():
     initiator, responder = test_session()
-    msg_frame = sha3('test') + b'notpadded'
+    msg_frame = sha3(b'test') + b'notpadded'
     msg_frame_padded = rzpad16(msg_frame)
     frame_size = len(msg_frame)
-    msg_header = struct.pack('>I', frame_size)[1:] + sha3('x')[:16 - 3]
+    msg_header = struct.pack('>I', frame_size)[1:] + sha3(b'x')[:16 - 3]
     msg_ct = initiator.encrypt(msg_header, msg_frame_padded)
     r = responder.decrypt(msg_ct)
     assert r['header'] == msg_header

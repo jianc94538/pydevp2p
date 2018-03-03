@@ -4,7 +4,7 @@ import pyelliptic
 
 
 def test_pyelliptic_sig():
-    priv_seed = 'test'
+    priv_seed = b'test'
     priv_key = mk_privkey(priv_seed)
     my_pubkey = privtopub(priv_key)
     e = ECCx(raw_privkey=priv_key)
@@ -27,7 +27,7 @@ def test_go_sig():
          'body': '03f847b840ab16b8c7fc1febb74ceedf1349944ffd4a04d11802451d02e808f08cb3b0c1c1a9c4e1efb7d309a762baa4c9c8da08890b3b712d1666b5b630d6c6a09cbba1718454e869b1',
          'signature': '0de032c62e30f4a9f9f07f25ac5377c5a531116147617a6c08f946c97991f351577e53ae138210bdb7447bab53f3398d746d42c64a9ce67a6248e59353f1bc6e01'}
 
-    priv_seed = 'test'
+    priv_seed = b'test'
     priv_key = mk_privkey(priv_seed)
     assert priv_key == decode_hex("9c22ff5f21f0b81b113e63f7db6da94fedef11b2119b4088b89664fb9a3cb658")
     my_pubkey = privtopub(priv_key)
