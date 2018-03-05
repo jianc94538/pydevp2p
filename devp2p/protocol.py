@@ -6,7 +6,6 @@ from .service import WiredService
 from devp2p import slogging
 log = slogging.get_logger('protocol')
 
-
 class ProtocolError(Exception):
     pass
 

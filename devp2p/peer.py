@@ -100,6 +100,7 @@ class Peer(gevent.Greenlet):
             raise e
 
     def connect_service(self, service):
+        log.info('connect_service', service=service)
         assert isinstance(service, WiredService)
         protocol_class = service.wire_protocol
         assert issubclass(protocol_class, BaseProtocol)
@@ -144,11 +145,12 @@ class Peer(gevent.Greenlet):
         self.remote_capabilities = capabilities
 
         # register in common protocols
-        log.debug('connecting services', services=self.peermanager.wired_services)
+        log.debug('receive_hello:connecting services', services=self.peermanager.wired_services)
         remote_services = dict()
         for name, version in capabilities:
-            if isinstance(name, bytes) and not isinstance(name, str):
-                name = name.decode('utf-8')
+            # Remove this for py3, the decode failed later lookup.
+            #if isinstance(name, bytes) and not isinstance(name, str):
+            #    name = name.decode('utf-8')
             if not name in remote_services:
                 remote_services[name] = []
             remote_services[name].append(version)
@@ -156,14 +158,19 @@ class Peer(gevent.Greenlet):
             proto = service.wire_protocol
             assert isinstance(service, WiredService)
             assert isinstance(proto.name, (bytes, str))
+            log.debug('try connect', protoname=proto.name, remote_services=remote_services, service=service)
             if proto.name in remote_services:
                 if proto.version in remote_services[proto.name]:
                     if service != self.peermanager:  # p2p protocol already registered
                         self.connect_service(service)
+                    else:
+                        log.debug('service is peermanager')
                 else:
                     log.debug('wrong version', service=proto.name, local_version=proto.version,
                               remote_version=remote_services[proto.name])
                     self.report_error('wrong version')
+            else:
+                log.debug('proto.name not in remote_services')
 
     @property
     def capabilities(self):

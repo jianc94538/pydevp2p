@@ -11,7 +11,6 @@ import rlp
 from rlp.utils import decode_hex, is_integer, str_to_bytes, bytes_to_str, safe_ord
 from gevent.server import DatagramServer
 
-import logging
 from devp2p import slogging
 from devp2p import crypto
 from devp2p import kademlia
@@ -21,8 +20,6 @@ from .upnp import add_portmap, remove_portmap
 
 
 log = slogging.get_logger('p2p.discovery')
-logging.basicConfig(format='%(asctime)s,%(msecs)d %(levelname)-8s [%(filename)s:%(lineno)d] %(message)s',
-    datefmt='%d-%m-%Y:%H:%M:%S', level=logging.DEBUG)
 
 class DefectiveMessage(Exception):
     pass
@@ -579,7 +576,8 @@ class NodeDiscovery(BaseService, DiscoveryProtocolTransport):
         ip = self.app.config['discovery']['listen_host']
         port = self.app.config['discovery']['listen_port']
         # nat port mappin
-        self.nat_upnp = add_portmap(port, 'UDP', 'Ethereum DEVP2P Discovery')
+        # Comment out upnp part, it lead to test hung and failed anyway.
+        #self.nat_upnp = add_portmap(port, 'UDP', 'Ethereum DEVP2P Discovery')
         log.info('starting listener', port=port, host=ip)
         self.server = DatagramServer((ip, port), handle=self._handle_packet)
         self.server.start()
@@ -597,7 +595,7 @@ class NodeDiscovery(BaseService, DiscoveryProtocolTransport):
 
     def stop(self):
         log.info('stopping discovery')
-        remove_portmap(self.nat_upnp, self.app.config['discovery']['listen_port'], 'UDP')
+        #remove_portmap(self.nat_upnp, self.app.config['discovery']['listen_port'], 'UDP')
         if self.server:
             self.server.stop()
         super(NodeDiscovery, self).stop()

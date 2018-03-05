@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 from gevent import Greenlet
 from devp2p import utils
+from devp2p import slogging
+log = slogging.get_logger('p2p.peermgr')
 
 
 class BaseService(Greenlet):

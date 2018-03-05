@@ -45,7 +45,7 @@ def create_app(node_num, config, services, app_class):
     config['client_version_string'] = 'NODE{}'.format(node_num)
 
     app = app_class(config)
-
+    log.info('create_app', config=app.config)
     # register services
     for service in services:
         assert issubclass(service, BaseService)

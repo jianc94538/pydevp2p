@@ -26,9 +26,6 @@ from .utils import big_endian_to_int
 from rlp.utils import encode_hex, is_integer, str_to_bytes
 
 log = slogging.get_logger('p2p.discovery.kademlia')
-logging.basicConfig(format='%(asctime)s,%(msecs)d %(levelname)-8s [%(filename)s:%(lineno)d] %(message)s',
-    datefmt='%d-%m-%Y:%H:%M:%S', level=logging.DEBUG)
-
 
 k_b = 8  # 8 bits per hop
 

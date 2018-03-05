@@ -19,7 +19,6 @@ from rlp.utils import decode_hex
 from devp2p import slogging
 log = slogging.get_logger('p2p.peermgr')
 
-
 def on_peer_exit(peer):
     peer.stop()
 
@@ -156,11 +155,13 @@ class PeerManager(WiredService):
     def start(self):
         log.info('starting peermanager')
         # try upnp nat
+        ''' comment upnp part, it blocks test and fail.
         self.nat_upnp = add_portmap(
             self.config['p2p']['listen_port'],
             'TCP',
             'Ethereum DEVP2P Peermanager'
         )
+        '''
         # start a listening server
         log.info('starting listener', addr=self.listen_addr)
         self.server.set_handle(self._on_new_connection)
@@ -228,7 +229,7 @@ class PeerManager(WiredService):
 
     def stop(self):
         log.info('stopping peermanager')
-        remove_portmap(self.nat_upnp, self.config['p2p']['listen_port'], 'TCP')
+        #remove_portmap(self.nat_upnp, self.config['p2p']['listen_port'], 'TCP')
         self.server.stop()
         for peer in self.peers:
             peer.stop()

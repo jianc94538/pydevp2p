@@ -11,10 +11,10 @@ from rlp.utils import encode_hex, decode_hex, is_integer
 import gevent
 try:
     import ethereum.slogging as slogging
-    slogging.configure(config_string=':debug,p2p.discovery:info')
+    slogging.configure(config_string=':info,p2p.protocol:info,p2p.peer:info,p2p.full_app:info')
 except:
     import devp2p.slogging as slogging
-log = slogging.get_logger('app')
+log = slogging.get_logger('full_app')
 
 
 class Token(rlp.Serializable):
@@ -97,11 +97,13 @@ class ExampleService(WiredService):
     wire_protocol = ExampleProtocol  # create for each peer
 
     def __init__(self, app):
+        log.info('ExampleService init')
         self.config = app.config
         self.address = privtopub_raw(decode_hex(self.config['node']['privkey_hex']))
         super(ExampleService, self).__init__(app)
 
     def start(self):
+        log.info('ExampleService start')
         super(ExampleService, self).start()
 
     def log(self, text, **kargs):

@@ -60,8 +60,7 @@ def main():
     from .discovery import NodeDiscovery
     from devp2p import slogging
     log = slogging.get_logger('app')
-    slogging.configure(config_string=':debug')
-
+ 
     # read config
     sample_config = b"""
 p2p:

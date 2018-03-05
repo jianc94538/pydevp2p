@@ -219,7 +219,6 @@ def test_disconnect():
 
 if __name__ == "__main__":
     import devp2p.slogging as slogging
-    slogging.configure(config_string=':debug,p2p:info')
     log = slogging.get_logger('app')
     TestFullApp().test_inc_counter_app(3)
     TestFullApp().test_inc_counter_app(6)
